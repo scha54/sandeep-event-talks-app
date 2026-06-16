@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusText = document.getElementById('status-text');
     const statusIndicator = document.getElementById('status-indicator');
     const exportCsvBtn = document.getElementById('export-csv-btn');
+    const themeToggleBtn = document.getElementById('theme-toggle');
     
     // Search & Filter DOM
     const searchInput = document.getElementById('search-input');
@@ -49,6 +50,28 @@ document.addEventListener('DOMContentLoaded', () => {
     refreshBtn.addEventListener('click', fetchReleases);
     retryBtn.addEventListener('click', fetchReleases);
     exportCsvBtn.addEventListener('click', exportToCSV);
+    
+    // Theme Initializer and Toggle Listener
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        const icon = themeToggleBtn.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-sun';
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-theme');
+        const icon = themeToggleBtn.querySelector('i');
+        if (icon) {
+            if (isLight) {
+                icon.className = 'fa-solid fa-sun';
+                localStorage.setItem('theme', 'light');
+            } else {
+                icon.className = 'fa-solid fa-moon';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    });
     
     // Filter Pills
     filterPills.forEach(pill => {

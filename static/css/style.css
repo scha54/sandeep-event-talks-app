@@ -806,3 +806,112 @@ body {
         flex-grow: 1;
     }
 }
+
+/* Light Theme Class overrides */
+body.light-theme {
+    --bg-dark: #f8fafc;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-border: rgba(0, 0, 0, 0.08);
+    --card-hover-border: rgba(99, 102, 241, 0.4);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+}
+
+body.light-theme .glow-bg {
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.05) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+body.light-theme .glow-bg-secondary {
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.04) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+body.light-theme .logo-area h1 {
+    background: linear-gradient(135deg, #0f172a, #4338ca);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .search-box input {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #0f172a;
+}
+
+body.light-theme .status-indicator {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    color: var(--text-secondary);
+}
+
+body.light-theme .filter-pill {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    color: var(--text-secondary);
+}
+
+body.light-theme .filter-pill:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #0f172a;
+}
+
+body.light-theme .filter-pill.active {
+    background: var(--accent-indigo);
+    color: white;
+    border-color: var(--accent-indigo);
+}
+
+body.light-theme .action-btn {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .action-btn:hover {
+    background: rgba(29, 155, 240, 0.08);
+    color: #1d9bf0;
+}
+
+body.light-theme .update-body code {
+    background: rgba(0, 0, 0, 0.04);
+    color: #be123c;
+    border-color: rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .modal-overlay {
+    background: rgba(248, 250, 252, 0.85);
+}
+
+body.light-theme .tweet-composer-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.10);
+}
+
+body.light-theme .tweet-composer-card textarea {
+    color: #0f172a;
+}
+
+body.light-theme .progress-ring__circle-bg {
+    stroke: #e2e8f0;
+}
+
+body.light-theme .modal-logo {
+    color: #0f172a;
+}
+
+body.light-theme .modal-title h2 {
+    color: #0f172a;
+}
+
+body.light-theme .modal-footer {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .timeline-date {
+    color: #0f172a;
+}
+
+body.light-theme .timeline::before {
+    background: linear-gradient(to bottom, var(--accent-indigo), var(--accent-purple), rgba(0, 0, 0, 0.05));
+}
+
