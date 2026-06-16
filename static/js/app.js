@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const retryBtn = document.getElementById('retry-btn');
     const statusText = document.getElementById('status-text');
     const statusIndicator = document.getElementById('status-indicator');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
     
     // Search & Filter DOM
     const searchInput = document.getElementById('search-input');
@@ -47,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event Listeners
     refreshBtn.addEventListener('click', fetchReleases);
     retryBtn.addEventListener('click', fetchReleases);
+    exportCsvBtn.addEventListener('click', exportToCSV);
     
     // Filter Pills
     filterPills.forEach(pill => {
@@ -131,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isLoading) {
             refreshIcon.classList.add('spinning');
             refreshBtn.disabled = true;
+            exportCsvBtn.disabled = true;
             statusIndicator.classList.add('loading');
             statusText.textContent = 'Syncing...';
             loadingState.style.display = 'flex';
@@ -140,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             refreshIcon.classList.remove('spinning');
             refreshBtn.disabled = false;
+            exportCsvBtn.disabled = false;
             loadingState.style.display = 'none';
         }
     }
@@ -153,12 +157,9 @@ document.addEventListener('DOMContentLoaded', () => {
         statusIndicator.classList.remove('loading');
     }
 
-    function renderTimeline() {
-        timelineContainer.innerHTML = '';
-        let hasContent = false;
-
-        // Filter and search notes
-        const filteredGroups = allReleases.map(group => {
+    // Filter and search notes logic helper
+    function getFilteredReleases() {
+        return allReleases.map(group => {
             const matchedUpdates = group.updates.filter(update => {
                 // Filter Match
                 let matchesFilter = false;
@@ -188,6 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 updates: matchedUpdates
             };
         }).filter(group => group.updates.length > 0);
+    }
+
+    function renderTimeline() {
+        timelineContainer.innerHTML = '';
+        const filteredGroups = getFilteredReleases();
 
         if (filteredGroups.length > 0) {
             errorState.style.display = 'none';
@@ -223,6 +229,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="update-header">
                             <span class="type-pill ${pillClass}">${update.type}</span>
                             <div class="card-actions">
+                                <button class="action-btn copy-btn" title="Copy text to clipboard">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
                                 <button class="action-btn tweet-btn" title="Prepare tweet for this update">
                                     <i class="fa-brands fa-x-twitter"></i>
                                 </button>
@@ -236,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Card Click selection interaction
                     card.addEventListener('click', (e) => {
                         // Prevent click action triggering if clicking links inside the body
-                        if (e.target.tagName === 'A') return;
+                        if (e.target.tagName === 'A' || e.target.closest('.action-btn')) return;
                         
                         document.querySelectorAll('.update-card').forEach(c => c.classList.remove('selected'));
                         card.classList.add('selected');
@@ -245,6 +254,30 @@ document.addEventListener('DOMContentLoaded', () => {
                             link: group.link,
                             ...update
                         };
+                    });
+
+                    // Copy to clipboard handler
+                    card.querySelector('.copy-btn').addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        const btn = e.currentTarget;
+                        const icon = btn.querySelector('i');
+                        try {
+                            await navigator.clipboard.writeText(update.text);
+                            // Visual success feedback
+                            icon.className = 'fa-solid fa-check';
+                            btn.style.color = '#10b981';
+                            btn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                            btn.style.backgroundColor = 'rgba(16, 185, 129, 0.12)';
+                            
+                            setTimeout(() => {
+                                icon.className = 'fa-regular fa-copy';
+                                btn.style.color = '';
+                                btn.style.borderColor = '';
+                                btn.style.backgroundColor = '';
+                            }, 1500);
+                        } catch (err) {
+                            console.error('Failed to copy text: ', err);
+                        }
                     });
 
                     // Direct Tweet button click handler
@@ -279,8 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let textPreview = update.text;
         
         // Calculate remaining chars for text (total 280)
-        // Reserve space for tags + link + templates: "BigQuery (Jun 15) [Feature]: [Text] #BigQuery #GoogleCloud #GCP URL"
-        // Let's create the active tags list
         const activeTags = getActiveTagsString();
         const infoPrefix = `BQ (${cleanDate}) [${update.type}]: `;
         const linkStr = `\n\nRelease: ${update.link}`;
@@ -320,20 +351,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateTweetTextWithTags() {
         if (!selectedUpdate) return;
         
-        // Read textarea content, extract tags and link, keep custom modifications, and adjust tags at the end.
         let currentVal = tweetTextarea.value;
-        
-        // Simple heuristic: remove old hashtags matching suggestions from the text
         const suggestions = Array.from(tagChips).map(c => c.getAttribute('data-tag'));
         
-        // We will strip existing suggestions tags from the bottom
         let lines = currentVal.split('\n');
         let textLines = [];
         
         for (let line of lines) {
             let cleanLine = line;
             suggestions.forEach(tag => {
-                // Remove the tag from the line if it appears
                 cleanLine = cleanLine.replace(new RegExp(tag, 'g'), '');
             });
             cleanLine = cleanLine.trim();
@@ -342,7 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         
-        // Re-append active tags at the bottom line
         const activeTags = getActiveTagsString();
         if (activeTags) {
             textLines.push(activeTags);
@@ -358,7 +383,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         charCounter.textContent = remaining;
         
-        // Colors & Alert Thresholds
         charCounter.className = 'char-counter';
         if (remaining <= 20 && remaining > 0) {
             charCounter.classList.add('warning');
@@ -372,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const offset = RING_CIRCUMFERENCE - (percent / 100) * RING_CIRCUMFERENCE;
             progressCircle.style.strokeDashoffset = offset;
             
-            // Adjust circle color dynamically
             if (remaining <= 0) {
                 progressCircle.style.stroke = '#ef4444';
             } else if (remaining <= 20) {
@@ -393,5 +416,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(twitterUrl, '_blank', 'noopener,noreferrer');
         closeComposer();
+    }
+
+    // CSV Exporter using Browser Blob objects
+    function exportToCSV() {
+        const filtered = getFilteredReleases();
+        if (filtered.length === 0) {
+            alert("No data available to export.");
+            return;
+        }
+
+        let csvRows = [];
+        // Headers
+        csvRows.push(["Date", "Type", "Update Description", "Link"].map(h => `"${h.replace(/"/g, '""')}"`).join(","));
+
+        filtered.forEach(group => {
+            group.updates.forEach(update => {
+                const row = [
+                    group.date,
+                    update.type,
+                    update.text,
+                    group.link
+                ].map(val => `"${(val || "").replace(/"/g, '""')}"`);
+                csvRows.push(row.join(","));
+            });
+        });
+
+        const csvString = csvRows.join("\n");
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `bigquery_releases_${activeFilter}_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 });
