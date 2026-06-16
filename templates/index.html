@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Radar - Google Cloud Feed & Share</title>
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="glow-bg-secondary"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                </div>
+                <div>
+                    <h1>BigQuery Release Radar</h1>
+                    <p class="subtitle">Real-time updates, insights, and social sharing</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <span class="status-indicator" id="status-indicator">
+                    <span class="dot"></span>
+                    <span id="status-text">Checking feed...</span>
+                </span>
+                <button id="refresh-btn" class="btn btn-primary btn-refresh">
+                    <i class="fa-solid fa-arrows-rotate" id="refresh-icon"></i>
+                    <span>Refresh Feed</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Search & Filter Controls -->
+        <section class="controls-section glass-card">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" placeholder="Search features, issues, optimizations..." autocomplete="off">
+                <button id="clear-search" class="clear-btn" style="display: none;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="filter-group">
+                <span class="filter-label">Filter by type:</span>
+                <div class="filter-pills" id="filter-pills">
+                    <button class="filter-pill active" data-type="all">All Updates</button>
+                    <button class="filter-pill" data-type="feature"><span class="pill-dot feature"></span>Feature</button>
+                    <button class="filter-pill" data-type="issue"><span class="pill-dot issue"></span>Issue</button>
+                    <button class="filter-pill" data-type="deprecation"><span class="pill-dot deprecation"></span>Deprecation</button>
+                    <button class="filter-pill" data-type="other"><span class="pill-dot other"></span>Other</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Loading State -->
+            <div class="loading-state" id="loading-state">
+                <div class="spinner-container">
+                    <div class="double-bounce1"></div>
+                    <div class="double-bounce2"></div>
+                </div>
+                <p>Syncing latest BigQuery releases...</p>
+            </div>
+
+            <!-- Error State -->
+            <div class="error-state glass-card" id="error-state" style="display: none;">
+                <i class="fa-solid fa-triangle-exclamation error-icon"></i>
+                <h3>Unable to sync feed</h3>
+                <p id="error-message">Something went wrong while fetching the release notes. Please try again.</p>
+                <button id="retry-btn" class="btn btn-secondary">
+                    <i class="fa-solid fa-arrows-rotate"></i> Retry Sync
+                </button>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state glass-card" id="empty-state" style="display: none;">
+                <i class="fa-solid fa-folder-open empty-icon"></i>
+                <h3>No matching updates found</h3>
+                <p>Try adjusting your search terms or filter selection.</p>
+            </div>
+
+            <!-- Releases List / Timeline -->
+            <div class="timeline" id="timeline-container">
+                <!-- Dynamically populated -->
+            </div>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>BigQuery Release Radar &copy; 2026. Data fetched dynamically from Google Cloud Release Feed.</p>
+        </footer>
+    </div>
+
+    <!-- Twitter / Tweet Composer Modal -->
+    <div class="modal-overlay" id="tweet-modal">
+        <div class="modal-container glass-card animate-in">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-brands fa-x-twitter modal-logo"></i>
+                    <h2>Share Update</h2>
+                </div>
+                <button class="modal-close" id="close-modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-hint">Review and edit your tweet. A direct link to the official Google Cloud BigQuery release notes will be automatically appended.</p>
+                
+                <div class="tweet-composer-card">
+                    <textarea id="tweet-textarea" rows="5" maxlength="280" placeholder="What's happening?"></textarea>
+                    
+                    <div class="tweet-preview-footer">
+                        <div class="char-counter-container">
+                            <svg class="progress-ring" width="36" height="36">
+                                <circle class="progress-ring__circle-bg" stroke="#1f2937" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
+                                <circle class="progress-ring__circle" id="progress-circle" stroke="#1d9bf0" stroke-width="3" fill="transparent" r="14" cx="18" cy="18"/>
+                            </svg>
+                            <span id="char-counter" class="char-counter">280</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hashtags-suggestion">
+                    <span class="suggestion-label">Suggested Tags:</span>
+                    <div class="tag-chips">
+                        <button class="tag-chip active" data-tag="#BigQuery">#BigQuery</button>
+                        <button class="tag-chip active" data-tag="#GoogleCloud">#GoogleCloud</button>
+                        <button class="tag-chip active" data-tag="#GCP">#GCP</button>
+                        <button class="tag-chip" data-tag="#DataAnalytics">#DataAnalytics</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-tweet-btn">Cancel</button>
+                <button class="btn btn-twitter" id="publish-tweet-btn">
+                    <i class="fa-brands fa-x-twitter"></i>
+                    <span>Tweet Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
