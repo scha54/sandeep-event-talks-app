@@ -103,6 +103,32 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.focus();
     });
 
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Press '/' to focus search (unless currently typing in form fields)
+        if (e.key === '/' && document.activeElement !== searchInput && document.activeElement !== tweetTextarea) {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        }
+        
+        // Press 'Escape' to close modal, clear search, or deselect
+        if (e.key === 'Escape') {
+            if (tweetModal.classList.contains('active')) {
+                closeComposer();
+            } else if (document.activeElement === searchInput || searchQuery.length > 0) {
+                searchInput.value = '';
+                searchQuery = '';
+                clearSearchBtn.style.display = 'none';
+                renderTimeline();
+                searchInput.blur();
+            } else if (selectedUpdate) {
+                document.querySelectorAll('.update-card').forEach(c => c.classList.remove('selected'));
+                selectedUpdate = null;
+            }
+        }
+    });
+
     // Modal Close Events
     closeModalBtn.addEventListener('click', closeComposer);
     cancelTweetBtn.addEventListener('click', closeComposer);
@@ -265,6 +291,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
 
+                    // Ensure all anchor links inside the parsed HTML open in a new tab
+                    card.querySelectorAll('.update-body a').forEach(a => {
+                        a.setAttribute('target', '_blank');
+                        a.setAttribute('rel', 'noopener noreferrer');
+                    });
+
                     // Card Click selection interaction
                     card.addEventListener('click', (e) => {
                         // Prevent click action triggering if clicking links inside the body
@@ -292,6 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             btn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
                             btn.style.backgroundColor = 'rgba(16, 185, 129, 0.12)';
                             
+                            showToast("Copied update to clipboard!", "success");
+                            
                             setTimeout(() => {
                                 icon.className = 'fa-regular fa-copy';
                                 btn.style.color = '';
@@ -300,6 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }, 1500);
                         } catch (err) {
                             console.error('Failed to copy text: ', err);
+                            showToast("Failed to copy text.", "error");
                         }
                     });
 
@@ -439,13 +474,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
         window.open(twitterUrl, '_blank', 'noopener,noreferrer');
         closeComposer();
+        showToast("Redirected to X (Twitter)!", "success");
     }
 
     // CSV Exporter using Browser Blob objects
     function exportToCSV() {
         const filtered = getFilteredReleases();
         if (filtered.length === 0) {
-            alert("No data available to export.");
+            showToast("No data available to export.", "error");
             return;
         }
 
@@ -476,5 +512,34 @@ document.addEventListener('DOMContentLoaded', () => {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        
+        showToast("CSV exported successfully!", "success");
+    }
+
+    // Toast Notification helper
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let iconClass = 'fa-circle-info';
+        if (type === 'success') iconClass = 'fa-circle-check';
+        if (type === 'error') iconClass = 'fa-triangle-exclamation';
+        
+        toast.innerHTML = `
+            <i class="fa-solid ${iconClass}"></i>
+            <span>${message}</span>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
     }
 });

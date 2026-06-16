@@ -77,11 +77,30 @@
         <main class="content-area">
             <!-- Loading State -->
             <div class="loading-state" id="loading-state">
-                <div class="spinner-container">
-                    <div class="double-bounce1"></div>
-                    <div class="double-bounce2"></div>
+                <p class="loading-message"><i class="fa-solid fa-arrows-rotate spinning"></i> Syncing latest BigQuery releases...</p>
+                <div class="skeleton-list">
+                    <div class="skeleton-card glass-card">
+                        <div class="skeleton-header"><div class="skeleton-pill"></div></div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line full"></div>
+                            <div class="skeleton-line mid"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-card glass-card">
+                        <div class="skeleton-header"><div class="skeleton-pill"></div></div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line full"></div>
+                            <div class="skeleton-line short"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton-card glass-card">
+                        <div class="skeleton-header"><div class="skeleton-pill"></div></div>
+                        <div class="skeleton-body">
+                            <div class="skeleton-line full"></div>
+                            <div class="skeleton-line mid"></div>
+                        </div>
+                    </div>
                 </div>
-                <p>Syncing latest BigQuery releases...</p>
             </div>
 
             <!-- Error State -->
@@ -161,5 +180,8 @@
             </div>
         </div>
     </div>
+    
+    <!-- Floating Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
 </body>
 </html>
